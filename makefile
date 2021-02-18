@@ -5,7 +5,7 @@ CC = g++
 CFLAGS = -g -Wall
 
 # build target
-TARGET = main
+TARGET = main.cpp
 
-all:
-	$(CC) $(CFLAGS) -o knotandcross $(TARGET).cpp
+all: $(TARGET)
+	$(CC) $(CFLAGS) -o knotandcross $(TARGET)

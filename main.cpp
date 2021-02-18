@@ -2,21 +2,18 @@
 #include <string>
 #include <cctype>
 
-#define R(r) (r -'A')
-#define C(c) (c -'1')
-
-// NOTE: Figure out problem with check_win() 
 
 using namespace std;
 
-char grid[3][3] = { {' ', ' ', ' '},
-		    {' ', ' ', ' '},
-		    {' ', ' ', ' '},};
+char grid[9] = { ' ', ' ', ' ',
+		 ' ', ' ', ' ',
+		 ' ', ' ', ' ',};
 
 typedef struct
 {
 	string name = "";
 	char mark = ' ';
+	uint16_t moves = 0b000000000;
 }player;
 
 void make_player(player p[2])
@@ -53,78 +50,53 @@ void make_player(player p[2])
 
 void print_grid()
 {
-	cout << '\t' << "    1     2     3\n";
+	cout << '\n';
 	cout << '\t' << "       |     |\n";
-	cout << "\tA" << "   " << grid[0][0] << "  |  " << grid[0][1] << "  |  " << grid[0][2] << "\n";
+	cout << "\t " << "   " << grid[0] << "  |  " << grid[1] << "  |  " << grid[2] << "\n";
 	cout << '\t' << "  _____|_____|_____\n";
 	cout << '\t' << "       |     |\n";
-	cout << "\tB" << "   " << grid[1][0] << "  |  " << grid[1][1] << "  |  " << grid[1][2] << "\n";
+	cout << "\t " << "   " << grid[3] << "  |  " << grid[4] << "  |  " << grid[5] << "\n";
 	cout << '\t' << "  _____|_____|_____\n";
 	cout << '\t' << "       |     |\n";
-	cout << "\tC" << "   " << grid[2][0] << "  |  " << grid[2][1] << "  |  " << grid[2][2] << "\n";
+	cout << "\t " << "   " << grid[6] << "  |  " << grid[7] << "  |  " << grid[8] << "\n";
 	cout << '\t' << "       |     |\n";
 	cout << '\n';
 }
 
-int check_win()
+int check_win(player *p)
 {
-	const string win[8][3] = {{"A1", "A2", "A3"}, {"B1", "B2", "B3"},
-			    	  {"C1", "C2", "C3"}, {"A1", "B1", "C1"},
-				  {"A2", "B2", "C2"}, {"A3", "B3", "C3"},
-			    	  {"A1", "B2", "C3"}, {"A3", "B2", "C1"},};
+	const uint16_t WINMASK[8] = {0b111000000, 0b000111000, 0b000000111, 0b100100100,
+				     0b010010010, 0b001001001, 0b100010001, 0b001010100,};
 
 	for(int i = 0;i < 8;i++)
 	{
-		int count = 0;
-		for(int j = 0;j < 2;j++)
+		if(__builtin_popcount(p->moves & WINMASK[i]) == 3)
 		{
-			int r = R(win[i][j][0]), c = C(win[i][j][1]);
-			int r_next = R(win[i][j + 1][0]), c_next = C(win[i][j + 1][1]);
-			if((grid[r][c] == grid[r_next][c_next]) && (grid[r][c] == 'O' || grid[r][c] == 'X'))
-			{
-				count++;
-			}
-			else
-			{
-				break;
-			}
-		}
-		if(count == 2)
-		{
-			return 1;
-		}
-		else
-		{
-			count = 0;
+			return 0;
 		}
 	}
-	return 0;
+	return 1;
 }
+
+#define INDEX(i) ((i - '0') - 1)
+#define SET_BIT(BF, N) BF |= (uint16_t)1 << N
 
 void insert(player *p)
 {
-	string s = "";
-	cout << p->name << " enter a index: "; cin >> s;
-	s[0] = toupper(s[0]);
-	int r = R(s[0]), c = C(s[1]);
+	string i = "";
+	cout << p->name << " enter a index: "; cin >> i;
 	bool v = false;
 	
 	while(v == false)
 	{
-		if(!(s[0] >= 'A' && s[0] <= 'C') || !(s[1] >= '1' && s[1] <= '3') || (s.length() > 2))
+		if(!(i[0] >= '1' && i[0] <= '9') || i.length() > 1)
 		{
-			cout << "Enter a valid index, [ROW][COLUMN]: "; cin >> s;
-			s[0] = toupper(s[0]);
-			r = R(s[0]);
-			c = C(s[1]);
+			cout << "Enter a valid index, [1-9]: "; cin >> i;
 		}
         
-		else if(grid[r][c] != ' ')
+		else if(grid[INDEX(i[0])] != ' ')
 		{
-			cout << "Index already full, enter a different index: "; cin >> s;
-			s[0] = toupper(s[0]);
-			r = s[0] - 'A';
-			c = (s[1] - '0') - 1;
+			cout << "Index already full, enter a different index: "; cin >> i;
 		}
         
 		else
@@ -133,7 +105,8 @@ void insert(player *p)
 		}
 	}		
 
-	grid[r][c] = p->mark;
+	SET_BIT(p->moves, INDEX(i[0]));
+	grid[INDEX(i[0])] = p->mark;
 }
 
 int main()
@@ -144,14 +117,14 @@ int main()
 	make_player(p);
 	for(int i = 0;i < 9;i++)
 	{
-		player go = p[i % 2];
+		player *go = &p[i % 2];
 		print_grid();
-		insert(&go);
+		insert(go);
 		if(i >= 4)
 		{
-			if(check_win() == 1)
+			if(check_win(go) == 0)
 			{
-				cout << go.name << " wins!!!\nGame Over\n";
+				cout << go->name << " wins!!!\nGame Over\n";
 				print_grid();
 				return 0;
 			}
