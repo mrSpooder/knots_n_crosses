@@ -1,8 +1,7 @@
-#include <iostream>
-#include <string>
-
-
-using namespace std;
+#include <iostream> 
+using std::string;
+using std::cout;
+using std::cin;
 
 char grid[9] = { ' ', ' ', ' ',
 		 ' ', ' ', ' ',
